@@ -6,37 +6,28 @@
         setup() {
             let status = ref('System is ready to sync to PAMANA Server'), 
                 resData = ref([]),
-                isOnline = ref(false)
+                isOnline = ref(false),
+                timeoutId = null;
 
-                onMounted(async () => {
-                    isOnline.value = navigator.onLine
-                    let intervalId = setInterval(function () {
-                        uploadPaymentToHO().then(result => {
-                            if(!result) clearInterval(intervalId);
-                        });
-                        isOnline.value = navigator.onLine
-                    }, 30000);
-
-                    uploadPaymentToHO().then(result => {
-                        if(!result) clearInterval(intervalId);
-                    });
-                });
+                onMounted(() => {
+                    uploadPaymentToHO();
+                })
 
                 const uploadPaymentToHO = async () => {
-                    resData.value = ''
-                    status.value = 'Syncing data ... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>'
-                    let response = await axios.get('/api/SyncPaymentToHO')
+                    clearTimeout(timeoutId);
+                    resData.value = '';
+                    status.value = 'Syncing data ... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+                    await axios.get('/api/SyncPaymentToHO')
                     .then((response) => {
-                        status.value = 'Done Syncing, cycle will repeat in 30 seconds after the last response.'
-                        resData.value = response.data
-                        return true;
+                        status.value = 'Done Syncing, Cycle will repeat after 3 mins.';
+                        resData.value = response.data;
+                        timeoutId = setTimeout(uploadPaymentToHO, 30000);
                     })
                     .catch((error) => {
-                        status.value = 'Error Inserting Data.'
-                        resData.value = error.response.data
-                        return false;
+                        status.value = 'Error Inserting Data.';
+                        resData.value = error.response.data;
+                        timeoutId = setTimeout(uploadPaymentToHO, 30000);
                     });
-                    return response;
                 }
 
             return {
