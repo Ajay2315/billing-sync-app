@@ -11,15 +11,17 @@
 
                 onMounted(() => {
                     uploadPaymentToHO();
+                    isOnline.value = navigator.onLine
                 })
 
                 const uploadPaymentToHO = async () => {
+                    isOnline.value = navigator.onLine
                     clearTimeout(timeoutId);
                     resData.value = '';
                     status.value = 'Syncing data ... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
                     await axios.get('/api/SyncPaymentToHO')
                     .then((response) => {
-                        status.value = 'Done Syncing, Cycle will repeat after 3 mins.';
+                        status.value = 'Done Syncing, Cycle will repeat after 30 seconds.';
                         resData.value = response.data;
                         timeoutId = setTimeout(uploadPaymentToHO, 30000);
                     })
