@@ -6,28 +6,38 @@
         setup() {
             let status = ref('System is ready to sync to PAMANA Server'), 
                 resData = ref([]),
-                isOnline = ref(navigator.onLine)
+                isOnline = ref(false)
 
-            onMounted(async () => {
-                uploadPaymentToHO()
-                setInterval(function () {
-                    uploadPaymentToHO()
-                }, 180000)
-            })
+                onMounted(async () => {
+                    isOnline.value = navigator.onLine
+                    let intervalId = setInterval(function () {
+                        uploadPaymentToHO().then(result => {
+                            if(!result) clearInterval(intervalId);
+                        });
+                        isOnline.value = navigator.onLine
+                    }, 30000);
 
-            const uploadPaymentToHO = async () => {
-                resData.value = ''
-                status.value = 'Syncing data ... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>'
-                await axios.get('/api/SyncPaymentToHO')
-                .then((response) => {
-                    status.value = 'Done Syncing, Cycle will repeat after 3 mins.'
-                    resData.value = response.data
-                })
-                .catch((error) => {
-                    status.value = 'Error Inserting Data.'
-                    resData.value = error.response.data
-                })
-            }
+                    uploadPaymentToHO().then(result => {
+                        if(!result) clearInterval(intervalId);
+                    });
+                });
+
+                const uploadPaymentToHO = async () => {
+                    resData.value = ''
+                    status.value = 'Syncing data ... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>'
+                    let response = await axios.get('/api/SyncPaymentToHO')
+                    .then((response) => {
+                        status.value = 'Done Syncing, cycle will repeat in 30 seconds after the last response.'
+                        resData.value = response.data
+                        return true;
+                    })
+                    .catch((error) => {
+                        status.value = 'Error Inserting Data.'
+                        resData.value = error.response.data
+                        return false;
+                    });
+                    return response;
+                }
 
             return {
                 status, resData, isOnline

@@ -45,7 +45,7 @@ class BillingController extends Controller
         $header = DB::table('txn_PaymentHeader')
                     ->where('PostStatus', 'Unposted')
                     ->where('PaymentDate', $this->today)
-                    ->limit(100)->get();
+                    ->limit(200)->get();
 
         foreach($header as $h) {
             $data = array(
@@ -134,7 +134,7 @@ class BillingController extends Controller
         $details = DB::table('txn_PaymentDetails')
         ->where('PostStatus', 'Unposted')
         ->where('PaymentDate', $this->today)
-        ->limit(100)->get();
+        ->limit(200)->get();
 
         foreach($details as $d) {
             $data = array(
