@@ -14,7 +14,7 @@ class BillingController extends Controller
     {
         $this->_key = env('VITE_API_KEY');
         $this->branchID = env('VITE_APP_BrachID');
-        $this->branch = env('VITE_APP_Brach');
+        $this->branch = env('VITE_APP_Branch');
         $this->dateTime = now();
         $this->today = now()->format('Y-m-d');
     }
