@@ -21,7 +21,7 @@
                     status.value = 'Syncing data ... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
                     await axios.get('/api/SyncPaymentToHO')
                     .then((response) => {
-                        status.value = 'Done Syncing, Cycle will repeat after 30 seconds.';
+                        status.value = 'Done Syncing, Cycle will repeat in 30 seconds after the last sync.';
                         resData.value = response.data;
                         timeoutId = setTimeout(uploadPaymentToHO, 30000);
                     })
@@ -45,6 +45,9 @@
     <section class="section">
       <div class="row">
         <div class="col-md-12">
+            <div class="alert alert-warning">
+                Do not close this app. This Will sync the data to HO Server. Thank you!
+            </div>
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">
