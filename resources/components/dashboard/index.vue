@@ -46,7 +46,7 @@
       <div class="row">
         <div class="col-md-12">
             <div class="alert alert-warning">
-                Do not close this app. This will sync the data district to HO Server. Thank you!
+                Do not close this app. This will sync the district data to HO Server. Thank you!
             </div>
             <div class="card">
                 <div class="card-body">
