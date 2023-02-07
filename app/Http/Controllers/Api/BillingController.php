@@ -30,21 +30,28 @@ class BillingController extends Controller
             return $dResponse;
         }
 
+        $hoResponse = $this->uploadPaymentHeaderOthers();
+        if($hoResponse->getData()->error == true) {
+            return $hoResponse;
+        }
+
+        $doResponse = $this->uploadPaymentDetailsOthers();
+        if($doResponse->getData()->error == true) {
+            return $hoResponse;
+        }
+
         $response = [
             'error' => false,
-            'table' => 'Payment Header, Payment Details',
-            'message' => 'Payment Inserted Successfully.'
+            'table' => 'Payment Header, Payment Detail, Payment Header Others, Payment Detail Others',
+            'message' => 'Payment Data Inserted Successfully.'
         ];
         return response()->json($response, 200);
-
-        $this->uploadPaymentHeaderOthers();
-        $this->uploadPaymentDetailsOthers();
     }
 
     public function uploadPaymentHeader() {
         $header = DB::table('txn_PaymentHeader')
                     ->where('PostStatus', 'Unposted')
-                    ->where('PaymentDate', $this->today)
+                    //->where('PaymentDate', $this->today)
                     ->limit(200)->get();
 
         foreach($header as $h) {
@@ -133,7 +140,7 @@ class BillingController extends Controller
     public function uploadPaymentDetails() {
         $details = DB::table('txn_PaymentDetails')
         ->where('PostStatus', 'Unposted')
-        ->where('PaymentDate', $this->today)
+        //->where('PaymentDate', $this->today)
         ->limit(200)->get();
 
         foreach($details as $d) {
@@ -212,17 +219,17 @@ class BillingController extends Controller
     }
 
     public function uploadPaymentHeaderOthers() {
-        $headerOther = DB::table('txn_PaymentHeaderOthers')
+        $header = DB::table('txn_PaymentHeaderOthers')
                     ->where('PostStatus', 'Unposted')
-                    ->where('PaymentDate', $this->today)
-                    ->limit(100)->get();
+                    //->where('PaymentDate', $this->today)
+                    ->limit(200)->get();
 
-        foreach($headerOther as $h) {
+        foreach($header as $h) {
             $data = array(
                 '_key' => $this->_key,
                 'CustomerID' => $h->CustomerID,
                 'AccountNo' => $h->AccountNo,
-                'AccountName' => $h->AccountName,
+'                AccountName' => $h->AccountName,
                 'ORNumber' => $h->ORNumber,
                 'Pamana' => $h->Pamana,
                 'PaymentDate' => $h->PaymentDate,
@@ -230,17 +237,13 @@ class BillingController extends Controller
                 'eUser' => $h->eUser,
                 'Status' => $h->Status,
                 'ORtype' => $h->ORtype,
-                'BranchID' => $this->branchID,
-                'Branch' => $this->branch,
-                'PostStatus' => 'Posted',
-                'DateTimeUploaded' => $this->dateTime
+                'PostStatus' => 'Posted'
             );
-
     
             $ch = curl_init();
     
             $options = array(
-                CURLOPT_URL => 'http://190.92.244.187/api/BillingApi/InsertPaymentHeader',
+                CURLOPT_URL => 'http://190.92.244.187/api/BillingApi/InsertPaymentHeaderOther',
                 CURLOPT_POST => 1,
                 CURLOPT_POSTFIELDS => $data,
                 CURLOPT_RETURNTRANSFER => 1
@@ -256,19 +259,19 @@ class BillingController extends Controller
                 $response = [
                     'result' => $result,
                     'error' => true,
-                    'table' => 'Payment Header',
+                    'table' => 'Payment Header Other',
                     'message' => 'Error Inserting Data.',
                     'account' => $h
                 ];
                 return response()->json($response, 422);
             }
 
-            $okay = DB::table('txn_PaymentHeader')->where('ID', $h->ID)->update(['PostStatus' => 'Posted']);
+            $okay = DB::table('txn_PaymentHeaderOther')->where('ID', $h->ID)->update(['PostStatus' => 'Posted']);
             if(!$okay) {
                 $response = [
                     'result' => $okay,
                     'error' => true,
-                    'table' => 'Payment Header',
+                    'table' => 'Payment Header Other',
                     'message' => 'Error Updating Client Data.',
                     'account' => $h
                 ];
@@ -285,21 +288,21 @@ class BillingController extends Controller
     }
 
     public function uploadPaymentDetailsOthers() {
-        $detailsother = DB::table('txn_PaymentDetailsOthers')->where('PostStatus', '!=', 'PostStatus')->get();
+        $details = DB::table('txn_PaymentDetailsOthers')
+        ->where('PostStatus', 'Unposted')
+        //->where('PaymentDate', $this->today)
+        ->limit(200)->get();
 
-        foreach($detailsother as $do) {
-
+        foreach($details as $d) {
             $data = array(
                 '_key' => $this->_key,
-                'CustomerID' => $do->CustomerID,
-                'ORNumber' => $do->ORNumber,
-                'Particular' => $do->Particular,
-                'Quantity' => $do->Quantity,
-                'UnitAmount' => $do->UnitAmount,
-                'Amount' => $do->Amount,
-                'EWT' => $do->EWT,
-                'BranchID' => $this->branchID,
-                'Branch' => $this->branch,
+                'CustomerID' => $d->CustomerID,
+                'ORNumber' => $d->ORNumber,
+                'Particular' => $d->Particular,
+                'Quantity' => $d->Quantity,
+                'UnitAmount' => $d->UnitAmount,
+                'Amount' => $d->Amount,
+                'ORtype' => $d->ORtype,
                 'PostStatus' => 'Posted'
             );
     
@@ -318,7 +321,35 @@ class BillingController extends Controller
     
             curl_close($ch);
 
-            DB::table('txn_PaymentDetailsOthers')->where('id', $do->id)->update(['PostStatus' => 'Posted']);
+            if($result !== '1') {
+                $response = [
+                    'result' => $result,
+                    'error' => true,
+                    'table' => 'Payment Details Others',
+                    'message' => 'Error Inserting Data.',
+                    'account' => $d
+                ];
+                return response()->json($response, 422);
+            }
+
+            $okay = DB::table('txn_PaymentDetailsOthers')->where('id', $d->ID)->update(['PostStatus' => 'Posted']);
+            if(!$okay) {
+                $response = [
+                    'result' => $okay,
+                    'error' => true,
+                    'table' => 'Payment Details Others',
+                    'message' => 'Error Updating Client Data.',
+                    'account' => $d
+                ];
+                return response()->json($response, 422);
+            }
         }
+
+        $response = [
+            'error' => false,
+            'table' => 'Payment Details Others',
+            'message' => 'Payment Details Others Inserted Successfully.'
+        ];
+        return response()->json($response, 200);
     }
 }
