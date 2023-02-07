@@ -51,7 +51,7 @@ class BillingController extends Controller
     public function uploadPaymentHeader() {
         $header = DB::table('txn_PaymentHeader')
                     ->where('PostStatus', 'Unposted')
-                    //->where('PaymentDate', $this->today)
+                    ->where(DB::raw('YEAR(PaymentDate)'), '=', date("Y", $this->today))
                     ->limit(200)->get();
 
         foreach($header as $h) {
@@ -140,7 +140,7 @@ class BillingController extends Controller
     public function uploadPaymentDetails() {
         $details = DB::table('txn_PaymentDetails')
         ->where('PostStatus', 'Unposted')
-        //->where('PaymentDate', $this->today)
+        ->where(DB::raw('YEAR(PaymentDate)'), '=', date("Y", $this->today))
         ->limit(200)->get();
 
         foreach($details as $d) {
@@ -221,7 +221,7 @@ class BillingController extends Controller
     public function uploadPaymentHeaderOthers() {
         $header = DB::table('txn_PaymentHeaderOthers')
                     ->where('PostStatus', 'Unposted')
-                    //->where('PaymentDate', $this->today)
+                    ->where(DB::raw('YEAR(PaymentDate)'), '=', date("Y", $this->today))
                     ->limit(200)->get();
 
         foreach($header as $h) {
@@ -229,7 +229,7 @@ class BillingController extends Controller
                 '_key' => $this->_key,
                 'CustomerID' => $h->CustomerID,
                 'AccountNo' => $h->AccountNo,
-'                AccountName' => $h->AccountName,
+                'AccountName' => $h->AccountName,
                 'ORNumber' => $h->ORNumber,
                 'Pamana' => $h->Pamana,
                 'PaymentDate' => $h->PaymentDate,
@@ -309,7 +309,7 @@ class BillingController extends Controller
             $ch = curl_init();
     
             $options = array(
-                CURLOPT_URL => 'http://190.92.244.187/api/BillingApi/InsertPaymentDetailsOthers',
+                CURLOPT_URL => 'http://190.92.244.187/api/BillingApi/InsertPaymentDetailsOther',
                 CURLOPT_POST => 1,
                 CURLOPT_POSTFIELDS => $data,
                 CURLOPT_RETURNTRANSFER => 1
