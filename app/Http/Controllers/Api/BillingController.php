@@ -237,7 +237,9 @@ class BillingController extends Controller
                 'eUser' => $h->eUser,
                 'Status' => $h->Status,
                 'ORtype' => $h->ORtype,
-                'PostStatus' => 'Posted'
+                'PostStatus' => 'Posted',
+                'BranchID' => $this->branchID,
+                'Branch' => $this->branch,
             );
     
             $ch = curl_init();
@@ -303,7 +305,10 @@ class BillingController extends Controller
                 'UnitAmount' => $d->UnitAmount,
                 'Amount' => $d->Amount,
                 'ORtype' => $d->ORtype,
-                'PostStatus' => 'Posted'
+                'PostStatus' => 'Posted',
+                'Status' => $d->ORtype,
+                'BranchID' => $this->branchID,
+                'Branch' => $this->branch,
             );
     
             $ch = curl_init();
