@@ -37,7 +37,7 @@ class BillingController extends Controller
 
         $doResponse = $this->uploadPaymentDetailsOthers();
         if($doResponse->getData()->error == true) {
-            return $hoResponse;
+            return $doResponse;
         }
 
         $response = [
@@ -51,7 +51,7 @@ class BillingController extends Controller
     public function uploadPaymentHeader() {
         $header = DB::table('txn_PaymentHeader')
                     ->where('PostStatus', 'Unposted')
-                    ->where(DB::raw('YEAR(PaymentDate)'), '=', date("Y", $this->today))
+                    ->where(DB::raw('YEAR(PaymentDate)'), '=', date("Y"))
                     ->limit(200)->get();
 
         foreach($header as $h) {
@@ -140,7 +140,7 @@ class BillingController extends Controller
     public function uploadPaymentDetails() {
         $details = DB::table('txn_PaymentDetails')
         ->where('PostStatus', 'Unposted')
-        ->where(DB::raw('YEAR(PaymentDate)'), '=', date("Y", $this->today))
+        ->where(DB::raw('YEAR(PaymentDate)'), '=', date("Y"))
         ->limit(200)->get();
 
         foreach($details as $d) {
@@ -221,7 +221,7 @@ class BillingController extends Controller
     public function uploadPaymentHeaderOthers() {
         $header = DB::table('txn_PaymentHeaderOthers')
                     ->where('PostStatus', 'Unposted')
-                    ->where(DB::raw('YEAR(PaymentDate)'), '=', date("Y", $this->today))
+                    ->where(DB::raw('YEAR(PaymentDate)'), '=', date("Y"))
                     ->limit(200)->get();
 
         foreach($header as $h) {
@@ -266,7 +266,7 @@ class BillingController extends Controller
                 return response()->json($response, 422);
             }
 
-            $okay = DB::table('txn_PaymentHeaderOther')->where('ID', $h->ID)->update(['PostStatus' => 'Posted']);
+            $okay = DB::table('txn_PaymentHeaderOthers')->where('ID', $h->ID)->update(['PostStatus' => 'Posted']);
             if(!$okay) {
                 $response = [
                     'result' => $okay,
