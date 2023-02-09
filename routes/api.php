@@ -20,4 +20,5 @@ Route::group([
 ], function($router){
     //-------------------Billing Controller Start--------------------------// 
     Route::get('/SyncPaymentToHO', 'BillingController@SyncPayment');
+    Route::get('/sync', 'BillingController@bulkUploadPaymentHeader');
 });
