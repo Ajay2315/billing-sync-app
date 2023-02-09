@@ -30,8 +30,6 @@ class BillingController extends Controller
             return $dResponse;
         }
 
-        return;
-
         $hoResponse = $this->bulkUploadPaymentHeaderOthers();
         if($hoResponse->getData()->error == true) {
             return $hoResponse;
