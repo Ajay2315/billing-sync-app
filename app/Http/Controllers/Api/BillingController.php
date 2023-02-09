@@ -411,7 +411,7 @@ class BillingController extends Controller
 
         foreach ($header as $row) {
             DB::table('txn_PaymentHeader')
-              ->where('ID', $row->id)
+              ->where('ID', $row->ID)
               ->update([
                   'PostStatus' => 'Posted',
               ]);
@@ -478,7 +478,7 @@ class BillingController extends Controller
 
         foreach ($header as $row) {
             DB::table('txn_PaymentDetails')
-              ->where('ID', $row->id)
+              ->where('ID', $row->ID)
               ->update([
                   'PostStatus' => 'Posted',
               ]);
@@ -545,7 +545,7 @@ class BillingController extends Controller
 
         foreach ($header as $row) {
             DB::table('txn_PaymentHeaderOthers')
-              ->where('ID', $row->id)
+              ->where('ID', $row->ID)
               ->update([
                   'PostStatus' => 'Posted',
               ]);
@@ -612,7 +612,7 @@ class BillingController extends Controller
 
         foreach ($header as $row) {
             DB::table('txn_PaymentDetailsOthers')
-              ->where('ID', $row->id)
+              ->where('ID', $row->ID)
               ->update([
                   'PostStatus' => 'Posted',
               ]);
