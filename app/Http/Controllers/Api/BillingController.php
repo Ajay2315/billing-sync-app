@@ -20,25 +20,10 @@ class BillingController extends Controller
     }
 
     public function SyncPayment() {
-        $hResponse = $this->bulkUploadPaymentHeader();
-        if($hResponse->getData()->error == true) {
-            return $hResponse;
-        }
-
-        $dResponse = $this->bulkUploadPaymentDetails();
-        if($dResponse->getData()->error == true) {
-            return $dResponse;
-        }
-
-        $hoResponse = $this->bulkUploadPaymentHeaderOthers();
-        if($hoResponse->getData()->error == true) {
-            return $hoResponse;
-        }
-
-        $doResponse = $this->bulkUploadPaymentDetailsOthers();
-        if($doResponse->getData()->error == true) {
-            return $doResponse;
-        }
+        $this->tryCatch('Payment Header', [$this, 'bulkUploadPaymentHeader']);
+        $this->tryCatch('Payment Details', [$this, 'bulkUploadPaymentDetails']);
+        $this->tryCatch('Payment Header Others', [$this, 'bulkUploadPaymentHeaderOthers']);
+        $this->tryCatch('Payment Details Others', [$this, 'bulkUploadPaymentDetailsOthers']);
 
         $response = [
             'error' => false,
@@ -48,10 +33,25 @@ class BillingController extends Controller
         return response()->json($response, 200);
     }
 
+    private function tryCatch($table, callable $callback)
+    {
+        try {
+            call_user_func($callback);
+        } catch (\Exception $e) {
+            $response = [
+                'error' => true,
+                'table' => $table,
+                'message' => 'There was an error inserting bulk data.',
+                'catch' => $e
+            ];
+            return response()->json($response, 422);
+        }
+    }
+
     public function bulkUploadPaymentHeader() {
         $header = DB::table('txn_PaymentHeader')
                     ->where('PostStatus', 'Unposted')
-                    ->limit(2000)
+                    ->limit(1000)
                     ->orderBy('ID', 'Desc')
                     ->get();
 
@@ -88,7 +88,7 @@ class BillingController extends Controller
         $result = curl_exec($ch);
     
         curl_close($ch);
-
+        
         if($header->count() > $result) {
             $response = [
                 'result' => $result,
@@ -118,7 +118,7 @@ class BillingController extends Controller
     public function bulkUploadPaymentDetails() {
         $header = DB::table('txn_PaymentDetails')
                     ->where('PostStatus', 'Unposted')
-                    ->limit(2000)
+                    ->limit(1000)
                     ->orderBy('ID', 'Desc')
                     ->get();
 
@@ -185,7 +185,7 @@ class BillingController extends Controller
     public function bulkUploadPaymentHeaderOthers() {
         $header = DB::table('txn_PaymentHeaderOthers')
                     ->where('PostStatus', 'Unposted')
-                    ->limit(2000)
+                    ->limit(1000)
                     ->orderBy('ID', 'Desc')
                     ->get();
 
@@ -252,7 +252,7 @@ class BillingController extends Controller
     public function bulkUploadPaymentDetailsOthers() {
         $header = DB::table('txn_PaymentDetailsOthers')
                     ->where('PostStatus', 'Unposted')
-                    ->limit(2000)
+                    ->limit(1000)
                     ->orderBy('ID', 'Desc')
                     ->get();
 
