@@ -362,7 +362,7 @@ class BillingController extends Controller
         $header = DB::table('txn_PaymentHeader')
                     ->where('PostStatus', 'Unposted')
                     ->limit(2000)
-                    ->orderBy('ID', 'desc')
+                    ->orderBy('ID', 'Desc')
                     ->get();
 
         if($header->count() == 0) {
@@ -409,18 +409,12 @@ class BillingController extends Controller
             return response()->json($response, 422);
         }
 
-        $okay = DB::table('txn_PaymentHeader')
-                  ->whereBetween('ID', [$header->last()->ID, $header->first()->ID])
-                  ->where('PostStatus', 'Unposted')
-                  ->update(['PostStatus' => 'Posted']);
-        if(!$okay) {
-            $response = [
-                'result' => $okay,
-                'error' => true,
-                'table' => 'Payment Header',
-                'message' => 'Error Updating Client Data.'
-            ];
-            return response()->json($response, 422);
+        foreach ($header as $row) {
+            DB::table('txn_PaymentHeader')
+              ->where('ID', $row->id)
+              ->update([
+                  'PostStatus' => 'Posted',
+              ]);
         }
 
         $response = [
@@ -435,7 +429,7 @@ class BillingController extends Controller
         $header = DB::table('txn_PaymentDetails')
                     ->where('PostStatus', 'Unposted')
                     ->limit(2000)
-                    ->orderBy('ID', 'desc')
+                    ->orderBy('ID', 'Desc')
                     ->get();
 
         if($header->count() == 0) {
@@ -482,18 +476,12 @@ class BillingController extends Controller
             return response()->json($response, 422);
         }
 
-        $okay = DB::table('txn_PaymentDetails')
-                  ->whereBetween('ID', [$header->last()->ID, $header->first()->ID])
-                  ->where('PostStatus', 'Unposted')
-                  ->update(['PostStatus' => 'Posted']);
-        if(!$okay) {
-            $response = [
-                'result' => $okay,
-                'error' => true,
-                'table' => 'Payment Details',
-                'message' => 'Error Updating Client Data.'
-            ];
-            return response()->json($response, 422);
+        foreach ($header as $row) {
+            DB::table('txn_PaymentDetails')
+              ->where('ID', $row->id)
+              ->update([
+                  'PostStatus' => 'Posted',
+              ]);
         }
 
         $response = [
@@ -508,7 +496,7 @@ class BillingController extends Controller
         $header = DB::table('txn_PaymentHeaderOthers')
                     ->where('PostStatus', 'Unposted')
                     ->limit(2000)
-                    ->orderBy('ID', 'desc')
+                    ->orderBy('ID', 'Desc')
                     ->get();
 
         if($header->count() == 0) {
@@ -555,18 +543,12 @@ class BillingController extends Controller
             return response()->json($response, 422);
         }
 
-        $okay = DB::table('txn_PaymentHeaderOthers')
-                  ->whereBetween('ID', [$header->last()->ID, $header->first()->ID])
-                  ->where('PostStatus', 'Unposted')
-                  ->update(['PostStatus' => 'Posted']);
-        if(!$okay) {
-            $response = [
-                'result' => $okay,
-                'error' => true,
-                'table' => 'Payment Header Others',
-                'message' => 'Error Updating Client Data.'
-            ];
-            return response()->json($response, 422);
+        foreach ($header as $row) {
+            DB::table('txn_PaymentHeaderOthers')
+              ->where('ID', $row->id)
+              ->update([
+                  'PostStatus' => 'Posted',
+              ]);
         }
 
         $response = [
@@ -581,7 +563,7 @@ class BillingController extends Controller
         $header = DB::table('txn_PaymentDetailsOthers')
                     ->where('PostStatus', 'Unposted')
                     ->limit(2000)
-                    ->orderBy('ID', 'desc')
+                    ->orderBy('ID', 'Desc')
                     ->get();
 
         if($header->count() == 0) {
@@ -628,18 +610,12 @@ class BillingController extends Controller
             return response()->json($response, 422);
         }
 
-        $okay = DB::table('txn_PaymentDetailsOthers')
-                  ->whereBetween('ID', [$header->last()->ID, $header->first()->ID])
-                  ->where('PostStatus', 'Unposted')
-                  ->update(['PostStatus' => 'Posted']);
-        if(!$okay) {
-            $response = [
-                'result' => $okay,
-                'error' => true,
-                'table' => 'Payment Details Others',
-                'message' => 'Error Updating Client Data.'
-            ];
-            return response()->json($response, 422);
+        foreach ($header as $row) {
+            DB::table('txn_PaymentDetailsOthers')
+              ->where('ID', $row->id)
+              ->update([
+                  'PostStatus' => 'Posted',
+              ]);
         }
 
         $response = [
