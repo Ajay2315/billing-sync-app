@@ -51,7 +51,7 @@ class BillingController extends Controller
     public function bulkUploadPaymentHeader() {
         $header = DB::table('txn_PaymentHeader')
                     ->where('PostStatus', 'Unposted')
-                    ->limit(1000)
+                    ->limit(500)
                     ->orderBy('ID', 'Desc')
                     ->get();
 
@@ -61,7 +61,7 @@ class BillingController extends Controller
                 'table' => 'Payment Header',
                 'message' => 'All records is up to date.'
             ];
-            return response()->json($response, 422);
+            return response()->json($response, 200);
         }
 
         $data = [
@@ -118,7 +118,7 @@ class BillingController extends Controller
     public function bulkUploadPaymentDetails() {
         $header = DB::table('txn_PaymentDetails')
                     ->where('PostStatus', 'Unposted')
-                    ->limit(1000)
+                    ->limit(500)
                     ->orderBy('ID', 'Desc')
                     ->get();
 
@@ -128,7 +128,7 @@ class BillingController extends Controller
                 'table' => 'Payment Details',
                 'message' => 'All records is up to date.'
             ];
-            return response()->json($response, 422);
+            return response()->json($response, 200);
         }
 
         $data = [
@@ -185,7 +185,7 @@ class BillingController extends Controller
     public function bulkUploadPaymentHeaderOthers() {
         $header = DB::table('txn_PaymentHeaderOthers')
                     ->where('PostStatus', 'Unposted')
-                    ->limit(1000)
+                    ->limit(500)
                     ->orderBy('ID', 'Desc')
                     ->get();
 
@@ -252,7 +252,7 @@ class BillingController extends Controller
     public function bulkUploadPaymentDetailsOthers() {
         $header = DB::table('txn_PaymentDetailsOthers')
                     ->where('PostStatus', 'Unposted')
-                    ->limit(1000)
+                    ->limit(500)
                     ->orderBy('ID', 'Desc')
                     ->get();
 
