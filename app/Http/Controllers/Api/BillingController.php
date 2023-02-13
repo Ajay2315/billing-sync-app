@@ -20,10 +20,22 @@ class BillingController extends Controller
     }
 
     public function SyncPayment() {
-        $this->tryCatch('Payment Header', [$this, 'bulkUploadPaymentHeader']);
-        $this->tryCatch('Payment Details', [$this, 'bulkUploadPaymentDetails']);
-        $this->tryCatch('Payment Header Others', [$this, 'bulkUploadPaymentHeaderOthers']);
-        $this->tryCatch('Payment Details Others', [$this, 'bulkUploadPaymentDetailsOthers']);
+        $response = $this->tryCatch('Payment Header', [$this, 'bulkUploadPaymentHeader']);
+        if ($response->getStatusCode() === 422) {
+            return $response;
+        }
+        $response = $this->tryCatch('Payment Details', [$this, 'bulkUploadPaymentDetails']);
+        if ($response->getStatusCode() === 422) {
+            return $response;
+        }
+        $response = $this->tryCatch('Payment Header Others', [$this, 'bulkUploadPaymentHeaderOthers']);
+        if ($response->getStatusCode() === 422) {
+            return $response;
+        }
+        $response = $this->tryCatch('Payment Details Others', [$this, 'bulkUploadPaymentDetailsOthers']);
+        if ($response->getStatusCode() === 422) {
+            return $response;
+        }
 
         $response = [
             'error' => false,
@@ -36,7 +48,7 @@ class BillingController extends Controller
     private function tryCatch($table, callable $callback)
     {
         try {
-            call_user_func($callback);
+            $response = call_user_func($callback);
         } catch (\Exception $e) {
             $response = [
                 'error' => true,
@@ -46,6 +58,10 @@ class BillingController extends Controller
             ];
             return response()->json($response, 422);
         }
+        if ($response && $response->getStatusCode() === 422) {
+            return $response;
+        }
+        return response()->json(['error' => false], 200);
     }
 
     public function bulkUploadPaymentHeader() {
@@ -55,13 +71,13 @@ class BillingController extends Controller
                     ->orderBy('PaymentDate', 'Desc')
                     ->get();
 
-        if($header->count() == 0) {
+        if ($header === false) {
             $response = [
-                'error' => false,
+                'error' => true,
                 'table' => 'Payment Header',
-                'message' => 'All records is up to date.'
+                'message' => 'Error inserting data.'
             ];
-            return response()->json($response, 200);
+            return response()->json($response, 422);
         }
 
         if($header->count() == 0) {
@@ -95,10 +111,18 @@ class BillingController extends Controller
         curl_setopt_array($ch, $options);
     
         $result = curl_exec($ch);
+
+        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     
         curl_close($ch);
 
-        if(!is_numeric($result)) {
+        if ($statusCode === 422) {
+            return response()->json([
+                'error' => true,
+            ], 422);
+        }
+
+        if(!$result) {
             $response = [
                 'result' => $result,
                 'error' => true,
@@ -185,7 +209,15 @@ class BillingController extends Controller
     
         $result = curl_exec($ch);
     
+        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    
         curl_close($ch);
+
+        if ($statusCode === 422) {
+            return response()->json([
+                'error' => true,
+            ], 422);
+        }
 
         if(!$result) {
             $response = [
@@ -274,9 +306,17 @@ class BillingController extends Controller
     
         $result = curl_exec($ch);
     
+        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    
         curl_close($ch);
 
-        if(!is_numeric($result)) {
+        if ($statusCode === 422) {
+            return response()->json([
+                'error' => true,
+            ], 422);
+        }
+
+        if(!$result) {
             $response = [
                 'result' => $result,
                 'error' => true,
@@ -363,9 +403,17 @@ class BillingController extends Controller
     
         $result = curl_exec($ch);
     
+        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    
         curl_close($ch);
 
-        if(!is_numeric($result)) {
+        if ($statusCode === 422) {
+            return response()->json([
+                'error' => true,
+            ], 422);
+        }
+
+        if(!$result) {
             $response = [
                 'result' => $result,
                 'error' => true,
