@@ -52,8 +52,17 @@ class BillingController extends Controller
         $header = DB::table('txn_PaymentHeader')
                     ->where('PostStatus', 'Unposted')
                     ->limit(500)
-                    ->orderBy('ID', 'Desc')
+                    ->orderBy('PaymentDate', 'Desc')
                     ->get();
+
+        if($header->count() == 0) {
+            $response = [
+                'error' => false,
+                'table' => 'Payment Header',
+                'message' => 'All records is up to date.'
+            ];
+            return response()->json($response, 200);
+        }
 
         if($header->count() == 0) {
             $response = [
@@ -88,6 +97,16 @@ class BillingController extends Controller
         $result = curl_exec($ch);
     
         curl_close($ch);
+
+        if(!is_numeric($result)) {
+            $response = [
+                'result' => $result,
+                'error' => true,
+                'table' => 'Payment Header',
+                'message' => 'Error Inserting Data.'
+            ];
+            return response()->json($response, 422);
+        }
         
         if($header->count() > $result) {
             $response = [
@@ -101,7 +120,10 @@ class BillingController extends Controller
 
         foreach ($header as $row) {
             DB::table('txn_PaymentHeader')
-              ->where('ID', '=', $row->ID)
+              ->where('ID', $row->ID)
+              ->where('ORNumber', $row->ORNumber)
+              ->where('CustomerID', $row->CustomerID)
+              ->where('PaymentDate', $row->PaymentDate)
               ->update([
                   'PostStatus' => 'Posted',
             ]);
@@ -119,8 +141,17 @@ class BillingController extends Controller
         $header = DB::table('txn_PaymentDetails')
                     ->where('PostStatus', 'Unposted')
                     ->limit(500)
-                    ->orderBy('ID', 'Desc')
+                    ->orderBy('PaymentDate', 'Desc')
                     ->get();
+
+        if ($header === false) {
+            $response = [
+                'error' => true,
+                'table' => 'Payment Details',
+                'message' => 'Error inserting data.'
+            ];
+            return response()->json($response, 422);
+        }
 
         if($header->count() == 0) {
             $response = [
@@ -156,6 +187,16 @@ class BillingController extends Controller
     
         curl_close($ch);
 
+        if(!$result) {
+            $response = [
+                'result' => $result,
+                'error' => true,
+                'table' => 'Payment Details',
+                'message' => 'Error Inserting Data.'
+            ];
+            return response()->json($response, 422);
+        }
+
         if($header->count() > $result) {
             $response = [
                 'result' => $result,
@@ -168,7 +209,10 @@ class BillingController extends Controller
 
         foreach ($header as $row) {
             DB::table('txn_PaymentDetails')
-              ->where('ID', '=', $row->ID)
+              ->where('ID', $row->ID)
+              ->where('ORNumber', $row->ORNumber)
+              ->where('CustomerID', $row->CustomerID)
+              ->where('PaymentDate', $row->PaymentDate)
               ->update([
                   'PostStatus' => 'Posted',
               ]);
@@ -186,8 +230,17 @@ class BillingController extends Controller
         $header = DB::table('txn_PaymentHeaderOthers')
                     ->where('PostStatus', 'Unposted')
                     ->limit(500)
-                    ->orderBy('ID', 'Desc')
+                    ->orderBy('PaymentDate', 'Desc')
                     ->get();
+
+        if ($header === false) {
+            $response = [
+                'error' => true,
+                'table' => 'Payment Header Others',
+                'message' => 'Error inserting data.'
+            ];
+            return response()->json($response, 422);
+        }
 
         if($header->count() == 0) {
             $response = [
@@ -223,6 +276,16 @@ class BillingController extends Controller
     
         curl_close($ch);
 
+        if(!is_numeric($result)) {
+            $response = [
+                'result' => $result,
+                'error' => true,
+                'table' => 'Payment Header Others',
+                'message' => 'Error Inserting Data.'
+            ];
+            return response()->json($response, 422);
+        }
+
         if($header->count() > $result) {
             $response = [
                 'result' => $result,
@@ -235,7 +298,10 @@ class BillingController extends Controller
 
         foreach ($header as $row) {
             DB::table('txn_PaymentHeaderOthers')
-              ->where('ID', '=', $row->ID)
+              ->where('ID', $row->ID)
+              ->where('ORNumber', $row->ORNumber)
+              ->where('CustomerID', $row->CustomerID)
+              ->where('PaymentDate', $row->PaymentDate)
               ->update([
                   'PostStatus' => 'Posted',
               ]);
@@ -255,6 +321,15 @@ class BillingController extends Controller
                     ->limit(500)
                     ->orderBy('ID', 'Desc')
                     ->get();
+
+        if ($header === false) {
+            $response = [
+                'error' => true,
+                'table' => 'Payment Details Others',
+                'message' => 'Error inserting data.'
+            ];
+            return response()->json($response, 422);
+        }
 
         if($header->count() == 0) {
             $response = [
@@ -290,6 +365,16 @@ class BillingController extends Controller
     
         curl_close($ch);
 
+        if(!is_numeric($result)) {
+            $response = [
+                'result' => $result,
+                'error' => true,
+                'table' => 'Payment Details Others',
+                'message' => 'Error Inserting Data.'
+            ];
+            return response()->json($response, 422);
+        }
+
         if($header->count() > $result) {
             $response = [
                 'result' => $result,
@@ -302,7 +387,10 @@ class BillingController extends Controller
 
         foreach ($header as $row) {
             DB::table('txn_PaymentDetailsOthers')
-              ->where('ID', '=', $row->ID)
+              ->where('ID', $row->ID)
+              ->where('ORNumber', $row->ORNumber)
+              ->where('CustomerID', $row->CustomerID)
+              ->where('Particular', $row->Particular)
               ->update([
                   'PostStatus' => 'Posted',
               ]);
