@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class BillingController extends Controller
 {
@@ -20,6 +21,7 @@ class BillingController extends Controller
     }
 
     public function SyncPayment() {
+        //payments
         $response = $this->tryCatch('Payment Header', [$this, 'bulkUploadPaymentHeader']);
         if ($response->getStatusCode() === 422) {
             return $response;
@@ -36,17 +38,43 @@ class BillingController extends Controller
         if ($response->getStatusCode() === 422) {
             return $response;
         }
+        //Payments Validation
+        $response = $this->tryCatch('Payment Header Validation', [$this, 'validatePaymentHeader']);
+        if ($response->getStatusCode() === 422) {
+            return $response;
+        }
+        $response = $this->tryCatch('Payment Details Validation', [$this, 'validatePaymentDetails']);
+        if ($response->getStatusCode() === 422) {
+            return $response;
+        }
+        $response = $this->tryCatch('Payment Header Others Validation', [$this, 'validatePaymentHeaderOthers']);
+        if ($response->getStatusCode() === 422) {
+            return $response;
+        }
+        $response = $this->tryCatch('Payment Details Others Validation', [$this, 'validatePaymentDetailsOthers']);
+        if ($response->getStatusCode() === 422) {
+            return $response;
+        }
+
+        //reading 
+        // $response = $this->tryCatch('Reading Header', [$this, 'bulkUploadReadingHeader']);
+        // if ($response->getStatusCode() === 422) {
+        //     return $response;
+        // }
+        // $response = $this->tryCatch('Reading Details', [$this, 'bulkUploadReadingHeader']);
+        // if ($response->getStatusCode() === 422) {
+        //     return $response;
+        // }
 
         $response = [
             'error' => false,
-            'table' => 'Payment Header, Payment Detail, Payment Header Others, Payment Detail Others',
+            'table' => 'Payment Header, Payment Detail, Payment Header Others, Payment Detail Others, Reading Header, Reading Details',
             'message' => 'Payment Data Inserted Successfully.'
         ];
         return response()->json($response, 200);
     }
 
-    private function tryCatch($table, callable $callback)
-    {
+    private function tryCatch($table, callable $callback) {
         try {
             $response = call_user_func($callback);
         } catch (\Exception $e) {
@@ -116,13 +144,15 @@ class BillingController extends Controller
     
         curl_close($ch);
 
-        if ($statusCode === 422) {
+        if ($statusCode == 422) {
             return response()->json([
                 'error' => true,
+                'table' => 'Payment Header',
+                'message' => 'Error Inserting Data.'
             ], 422);
         }
 
-        if(!$result) {
+        if(!is_int($result) && is_array($result)) {
             $response = [
                 'result' => $result,
                 'error' => true,
@@ -280,7 +310,7 @@ class BillingController extends Controller
                 'table' => 'Payment Header Others',
                 'message' => 'All records is up to date.'
             ];
-            return response()->json($response, 422);
+            return response()->json($response, 200);
         }
 
         $data = [
@@ -377,7 +407,7 @@ class BillingController extends Controller
                 'table' => 'Payment Details Others',
                 'message' => 'All records is up to date.'
             ];
-            return response()->json($response, 422);
+            return response()->json($response, 200);
         }
 
         $data = [
@@ -448,6 +478,401 @@ class BillingController extends Controller
             'error' => false,
             'table' => 'Payment Details Others',
             'message' => 'Payment Details Others Inserted Successfully.'
+        ];
+        return response()->json($response, 200);
+    }
+
+    public function validatePaymentHeader() {
+        $header = DB::table('txn_PaymentHeader')
+                ->selectRaw('COALESCE(SUM(ToPay), 0) AS total_amount, COUNT(*) as total_count')
+                ->where('PostStatus', '=', 'Posted')
+                ->where('PaymentDate', '=', $this->today) 
+                ->first();
+
+        if($header->total_count == 0) {
+            $response = [
+                'error' => false,
+                'table' => 'Payment Header',
+                'message' => 'No records found.'
+            ];
+            return response()->json($response, 200);
+        }
+
+        $data = [
+            'TotalCount' => $header->total_count,
+            'TotalAmount' => $header->total_amount,
+            'Date' => $this->today, 
+            'BranchID' => $this->branchID,
+            'Branch' => $this->branch
+        ];
+
+        $ch = curl_init();
+    
+        $options = array(
+            CURLOPT_URL => 'http://190.92.244.187/api/BillingApi/validatePaymentHeader',
+            CURLOPT_POST => 1,
+            CURLOPT_POSTFIELDS => $data,
+            CURLOPT_RETURNTRANSFER => 1
+        );
+    
+        curl_setopt_array($ch, $options);
+    
+        $result = curl_exec($ch);
+
+        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    
+        curl_close($ch);
+
+        if($statusCode === 422) {
+            DB::table('txn_PaymentHeader')
+              ->where('PaymentDate', $this->today)
+              ->update([
+                'PostStatus' => 'Unposted'
+            ]);
+
+            $response = [
+                'error' => true,
+                'table' => 'Payment Header',
+                'message' => 'Records will be reconstructed on the next sync.'
+            ];
+            return response()->json($response, 422);
+        }
+
+        $response = [
+            'error' => false,
+            'table' => 'Payment Header',
+            'message' => 'Records is up to date.'
+        ];
+        return response()->json($response, 200);
+    }
+
+    public function validatePaymentDetails() {
+        $header = DB::table('txn_PaymentDetails')
+                ->selectRaw('SUM(Amount) as total_amount, COUNT(*) as total_count')
+                ->where('PostStatus', '=', 'Posted')
+                ->where('PaymentDate', '=', $this->today)
+                ->first();
+
+        if($header->total_count == 0) {
+            $response = [
+                'error' => false,
+                'table' => 'Payment Details',
+                'message' => 'No records found.'
+            ];
+            return response()->json($response, 200);
+        }
+
+        $data = [
+            'TotalCount' => $header->total_count,
+            'TotalAmount' => $header->total_amount,
+            'Date' => $this->today,
+            'BranchID' => $this->branchID,
+            'Branch' => $this->branch
+        ];
+
+        $ch = curl_init();
+    
+        $options = array(
+            CURLOPT_URL => 'http://190.92.244.187/api/BillingApi/validatePaymentDetails',
+            CURLOPT_POST => 1,
+            CURLOPT_POSTFIELDS => $data,
+            CURLOPT_RETURNTRANSFER => 1
+        );
+    
+        curl_setopt_array($ch, $options);
+    
+        $result = curl_exec($ch);
+
+        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    
+        curl_close($ch);
+
+        if($statusCode === 422) {
+            DB::table('txn_PaymentDetails')
+              ->where('PaymentDate', $this->today)
+              ->update([
+                'PostStatus' => 'Unposted'
+            ]);
+
+            $response = [
+                'error' => true,
+                'table' => 'Payment Details',
+                'message' => 'Records will be reconstructed on the next sync.'
+            ];
+            return response()->json($response, 422);
+        }
+
+        $response = [
+            'error' => false,
+            'table' => 'Payment Details',
+            'message' => 'Records is up to date.'
+        ];
+        return response()->json($response, 200);
+    }
+
+    public function validatePaymentHeaderOthers() {
+        $header = DB::table('txn_PaymentHeaderOthers')
+                ->selectRaw('COUNT(*) as total_count')
+                ->where('PostStatus', '=', 'Posted')
+                ->where('PaymentDate', '=', $this->today)
+                ->first();
+
+        if($header->total_count == 0) {
+            $response = [
+                'error' => false,
+                'table' => 'Payment Header Others',
+                'message' => 'No records found.'
+            ];
+            return response()->json($response, 200);
+        }
+
+        $data = [
+            'TotalCount' => $header->total_count,
+            'Date' => $this->today,
+            'BranchID' => $this->branchID,
+            'Branch' => $this->branch
+        ];
+
+        $ch = curl_init();
+    
+        $options = array(
+            CURLOPT_URL => 'http://190.92.244.187/api/BillingApi/validatePaymentHeaderOthers',
+            CURLOPT_POST => 1,
+            CURLOPT_POSTFIELDS => $data,
+            CURLOPT_RETURNTRANSFER => 1
+        );
+    
+        curl_setopt_array($ch, $options);
+    
+        $result = curl_exec($ch);
+
+        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    
+        curl_close($ch);
+
+        if($statusCode === 422) {
+            DB::table('txn_PaymentHeaderOthers')
+              ->where('PaymentDate', $this->today)
+              ->update([
+                'PostStatus' => 'Unposted'
+            ]);
+
+            $response = [
+                'error' => true,
+                'table' => 'Payment Header Others',
+                'message' => 'Records will be reconstructed on the next sync.'
+            ];
+            return response()->json($response, 422);
+        }
+
+        $response = [
+            'error' => false,
+            'table' => 'Payment Header Others',
+            'message' => 'Records is up to date.'
+        ];
+        return response()->json($response, 200);
+    }
+
+    public function validatePaymentDetailsOthers() {
+        $header = DB::table('txn_PaymentDetailsOthers')
+                ->selectRaw('SUM(Amount) as total_amount, COUNT(*) as total_count')
+                ->where('PostStatus', '=', 'Posted')
+                ->first();
+
+        if($header->total_count == 0) {
+            $response = [
+                'error' => false,
+                'table' => 'Payment Details Others',
+                'message' => 'No records found.'
+            ];
+            return response()->json($response, 200);
+        }
+
+        $data = [
+            'TotalCount' => $header->total_count,
+            'TotalAmount' => $header->total_amount,
+            'BranchID' => $this->branchID,
+            'Branch' => $this->branch
+        ];
+
+        $ch = curl_init();
+    
+        $options = array(
+            CURLOPT_URL => 'http://190.92.244.187/api/BillingApi/validatePaymentDetailsOthers',
+            CURLOPT_POST => 1,
+            CURLOPT_POSTFIELDS => $data,
+            CURLOPT_RETURNTRANSFER => 1
+        );
+    
+        curl_setopt_array($ch, $options);
+    
+        $result = curl_exec($ch);
+
+        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    
+        curl_close($ch);
+
+        if($statusCode === 422) {
+            DB::table('txn_PaymentDetailsOthers')
+              ->update([
+                'PostStatus' => 'Unposted'
+            ]);
+
+            $response = [
+                'error' => true,
+                'table' => 'Payment Details Others',
+                'message' => 'Records will be reconstructed on the next sync.'
+            ];
+            return response()->json($response, 422);
+        }
+
+        $response = [
+            'error' => false,
+            'table' => 'Payment Details Others',
+            'message' => 'Records is up to date.'
+        ];
+        return response()->json($response, 200);
+    }
+
+    public function rebuildPaymentsWater(Request $request) {
+        $input = $request->only(
+            'masterkey', 'dateFrom', 'dateTo'
+        );
+
+        $validator = Validator::make($input, [
+            'masterkey' => 'required',
+            'dateFrom' => 'required|date',
+            'dateTo' => 'required|date',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $data = [
+            'dateFrom' => $input['dateFrom'],
+            'dateTo' => $input['dateTo'],
+            'masterkey' => $input['masterkey'],
+            'BranchID' => $this->branchID,
+            'Branch' => $this->branch
+        ];
+
+        $ch = curl_init();
+    
+        $options = array(
+            CURLOPT_URL => 'http://190.92.244.187/api/BillingApi/rebuildWaterPayments',
+            CURLOPT_POST => 1,
+            CURLOPT_POSTFIELDS => $data,
+            CURLOPT_RETURNTRANSFER => 1
+        );
+    
+        curl_setopt_array($ch, $options);
+    
+        $result = curl_exec($ch);
+
+        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    
+        curl_close($ch);
+
+        if($statusCode === 422) {
+            $data = json_decode($result);
+            if($data->type == 'InvalidKey') {
+                $response = [
+                    "masterkey" => [$data->message]
+                ];
+            }else{
+                $response = [
+                    "date" => [$data->message]
+                ];
+            }
+            return response()->json($response, 422);
+        }
+
+        DB::table('txn_PaymentHeader')
+            ->whereBetween('PaymentDate', [$input['dateFrom'], $input['dateTo']])
+            ->update([
+                'PostStatus' => 'Unposted'
+            ]);
+        DB::table('txn_PaymentDetails')
+            ->whereBetween('PaymentDate', [$input['dateFrom'], $input['dateTo']])
+            ->update([
+                'PostStatus' => 'Unposted'
+            ]);
+
+        $response = [
+            'error' => false,
+            'message' => 'Record successfully rebuild.'
+        ];
+        return response()->json($response, 200);
+    }
+
+    public function rebuildPaymentsOthers(Request $request) {
+        $input = $request->only(
+            'masterkey', 'dateFrom', 'dateTo'
+        );
+
+        $validator = Validator::make($input, [
+            'masterkey' => 'required',
+            'dateFrom' => 'required|date',
+            'dateTo' => 'required|date',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $data = [
+            'dateFrom' => $input['dateFrom'],
+            'dateTo' => $input['dateTo'],
+            'masterkey' => $input['masterkey'],
+            'BranchID' => $this->branchID,
+            'Branch' => $this->branch
+        ];
+
+        $ch = curl_init();
+    
+        $options = array(
+            CURLOPT_URL => 'http://190.92.244.187/api/BillingApi/rebuildOthersPayments',
+            CURLOPT_POST => 1,
+            CURLOPT_POSTFIELDS => $data,
+            CURLOPT_RETURNTRANSFER => 1
+        );
+    
+        curl_setopt_array($ch, $options);
+    
+        $result = curl_exec($ch);
+
+        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    
+        curl_close($ch);
+
+        if($statusCode === 422) {
+            $data = json_decode($result);
+            if($data->type == 'InvalidKey') {
+                $response = [
+                    "masterkey" => [$data->message]
+                ];
+            }else{
+                $response = [
+                    "date" => [$data->message]
+                ];
+            }
+            return response()->json($response, 422);
+        }
+
+        DB::table('txn_PaymentHeaderOthers')
+            ->whereBetween('PaymentDate', [$input['dateFrom'], $input['dateTo']])
+            ->update([
+                'PostStatus' => 'Unposted'
+            ]);
+        DB::table('txn_PaymentDetailsOthers')
+            ->update([
+                'PostStatus' => 'Unposted'
+            ]);
+
+        $response = [
+            'error' => false,
+            'message' => 'Record successfully rebuild.'
         ];
         return response()->json($response, 200);
     }

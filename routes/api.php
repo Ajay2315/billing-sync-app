@@ -20,5 +20,8 @@ Route::group([
 ], function($router){
     //-------------------Billing Controller Start--------------------------// 
     Route::get('/SyncPaymentToHO', 'BillingController@SyncPayment');
+    Route::post('/rebuildPaymentsWater', 'BillingController@rebuildPaymentsWater');
+    Route::post('/rebuildPaymentsOthers', 'BillingController@rebuildPaymentsOthers');
+    Route::post('/validate', 'BillingController@validatePaymentHeader');
     Route::get('/sync', 'BillingController@bulkUploadPaymentDetailsOthers');
 });
