@@ -675,7 +675,7 @@ class BillingController extends Controller
 
     public function validatePaymentDetailsOthers() {
         $header = DB::table('txn_PaymentDetailsOthers')
-                ->selectRaw('SUM(Amount) as total_amount, COUNT(*) as total_count')
+                ->selectRaw('COALESCE(SUM(Amount), 0) as total_amount, COUNT(*) as total_count')
                 ->where('PostStatus', '=', 'Posted')
                 ->first();
 
