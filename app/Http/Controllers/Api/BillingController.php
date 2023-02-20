@@ -141,8 +141,6 @@ class BillingController extends Controller
         $result = curl_exec($ch);
 
         $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    
-        curl_close($ch);
 
         if ($statusCode == 422) {
             return response()->json([
@@ -151,6 +149,17 @@ class BillingController extends Controller
                 'message' => 'Error Inserting Data.'
             ], 422);
         }
+
+        if(curl_errno($ch)) {
+            $response = [
+                'error' => true,
+                'table' => 'Payment header',
+                'message' => 'Error Inserting Data - Please check the back-end code.'
+            ];
+            return response()->json($response, 422);
+        }
+    
+        curl_close($ch);
 
         if(!is_int($result) && is_array($result)) {
             $response = [
@@ -240,14 +249,23 @@ class BillingController extends Controller
         $result = curl_exec($ch);
     
         $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    
-        curl_close($ch);
 
         if ($statusCode === 422) {
             return response()->json([
                 'error' => true,
             ], 422);
         }
+
+        if(curl_errno($ch)) {
+            $response = [
+                'error' => true,
+                'table' => 'Payment Details',
+                'message' => 'Error Inserting Data - Please check the back-end code.'
+            ];
+            return response()->json($response, 422);
+        }
+    
+        curl_close($ch);
 
         if(!$result) {
             $response = [
@@ -337,14 +355,23 @@ class BillingController extends Controller
         $result = curl_exec($ch);
     
         $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    
-        curl_close($ch);
 
         if ($statusCode === 422) {
             return response()->json([
                 'error' => true,
             ], 422);
         }
+
+        if(curl_errno($ch)) {
+            $response = [
+                'error' => true,
+                'table' => 'Payment Header Others',
+                'message' => 'Error Inserting Data - Please check the back-end code.'
+            ];
+            return response()->json($response, 422);
+        }
+    
+        curl_close($ch);
 
         if(!$result) {
             $response = [
@@ -434,14 +461,23 @@ class BillingController extends Controller
         $result = curl_exec($ch);
     
         $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    
-        curl_close($ch);
 
         if ($statusCode === 422) {
             return response()->json([
                 'error' => true,
             ], 422);
         }
+
+        if(curl_errno($ch)) {
+            $response = [
+                'error' => true,
+                'table' => 'Payment Details Others',
+                'message' => 'Error Inserting Data - Please check the back-end code.'
+            ];
+            return response()->json($response, 422);
+        }
+    
+        curl_close($ch);
 
         if(!$result) {
             $response = [
@@ -520,8 +556,6 @@ class BillingController extends Controller
         $result = curl_exec($ch);
 
         $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    
-        curl_close($ch);
 
         if($statusCode === 422) {
             DB::table('txn_PaymentHeader')
@@ -537,6 +571,17 @@ class BillingController extends Controller
             ];
             return response()->json($response, 422);
         }
+
+        if(curl_errno($ch)) {
+            $response = [
+                'error' => true,
+                'table' => 'Payment Header',
+                'message' => 'Error Inserting Data - Please check the back-end code.'
+            ];
+            return response()->json($response, 422);
+        }
+    
+        curl_close($ch);
 
         $response = [
             'error' => false,
@@ -584,8 +629,6 @@ class BillingController extends Controller
         $result = curl_exec($ch);
 
         $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    
-        curl_close($ch);
 
         if($statusCode === 422) {
             DB::table('txn_PaymentDetails')
@@ -601,6 +644,17 @@ class BillingController extends Controller
             ];
             return response()->json($response, 422);
         }
+
+        if(curl_errno($ch)) {
+            $response = [
+                'error' => true,
+                'table' => 'Payment Details',
+                'message' => 'Error Inserting Data - Please check the back-end code.'
+            ];
+            return response()->json($response, 422);
+        }
+    
+        curl_close($ch);
 
         $response = [
             'error' => false,
@@ -647,8 +701,6 @@ class BillingController extends Controller
         $result = curl_exec($ch);
 
         $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    
-        curl_close($ch);
 
         if($statusCode === 422) {
             DB::table('txn_PaymentHeaderOthers')
@@ -664,6 +716,17 @@ class BillingController extends Controller
             ];
             return response()->json($response, 422);
         }
+
+        if(curl_errno($ch)) {
+            $response = [
+                'error' => true,
+                'table' => 'Payment Header Others',
+                'message' => 'Error Inserting Data - Please check the back-end code.'
+            ];
+            return response()->json($response, 422);
+        }
+    
+        curl_close($ch);
 
         $response = [
             'error' => false,
@@ -710,8 +773,6 @@ class BillingController extends Controller
 
         $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     
-        curl_close($ch);
-
         if($statusCode === 422) {
             DB::table('txn_PaymentDetailsOthers')
               ->update([
@@ -725,6 +786,17 @@ class BillingController extends Controller
             ];
             return response()->json($response, 422);
         }
+
+        if(curl_errno($ch)) {
+            $response = [
+                'error' => true,
+                'table' => 'Payment Details Others',
+                'message' => 'Error Inserting Data - Please check the back-end code.'
+            ];
+            return response()->json($response, 422);
+        }
+
+        curl_close($ch);
 
         $response = [
             'error' => false,
@@ -771,8 +843,6 @@ class BillingController extends Controller
         $result = curl_exec($ch);
 
         $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    
-        curl_close($ch);
 
         if($statusCode === 422) {
             $data = json_decode($result);
@@ -787,6 +857,17 @@ class BillingController extends Controller
             }
             return response()->json($response, 422);
         }
+
+        if(curl_errno($ch)) {
+            $response = [
+                'error' => true,
+                'table' => 'Rebuild Water Payments',
+                'message' => 'Error Rebuilding Data - Please check the back-end code.'
+            ];
+            return response()->json($response, 422);
+        }
+    
+        curl_close($ch);
 
         DB::table('txn_PaymentHeader')
             ->whereBetween('PaymentDate', [$input['dateFrom'], $input['dateTo']])
@@ -843,8 +924,6 @@ class BillingController extends Controller
         $result = curl_exec($ch);
 
         $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    
-        curl_close($ch);
 
         if($statusCode === 422) {
             $data = json_decode($result);
@@ -859,6 +938,17 @@ class BillingController extends Controller
             }
             return response()->json($response, 422);
         }
+
+        if(curl_errno($ch)) {
+            $response = [
+                'error' => true,
+                'table' => 'Rebuild Payment Others',
+                'message' => 'Error Rebuilding Data - Please check the back-end code.'
+            ];
+            return response()->json($response, 422);
+        }
+    
+        curl_close($ch);
 
         DB::table('txn_PaymentHeaderOthers')
             ->whereBetween('PaymentDate', [$input['dateFrom'], $input['dateTo']])

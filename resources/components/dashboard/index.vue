@@ -85,6 +85,7 @@
                     saveButtonText.value = saveButton
                     isRebuilding.value = false
                     rebuildStatus.value = ''
+                    masterkey.value = ''
                     toast.fire({
                         icon: 'error',
                         title: 'Validation Failed.'
