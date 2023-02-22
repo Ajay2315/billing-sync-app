@@ -56,15 +56,17 @@ class BillingController extends Controller
             return $response;
         }
 
+        $readingController = app('App\Http\Controllers\Api\ReadingController');
+
         //reading 
-        // $response = $this->tryCatch('Reading Header', [$this, 'bulkUploadReadingHeader']);
-        // if ($response->getStatusCode() === 422) {
-        //     return $response;
-        // }
-        // $response = $this->tryCatch('Reading Details', [$this, 'bulkUploadReadingHeader']);
-        // if ($response->getStatusCode() === 422) {
-        //     return $response;
-        // }
+        $response = $this->tryCatch('Reading Header', [$readingController, 'bulkUploadReadingHeader']);
+        if ($response->getStatusCode() === 422) {
+            return $response;
+        }
+        $response = $this->tryCatch('Reading Details', [$readingController, 'bulkUploadReadingDetails']);
+        if ($response->getStatusCode() === 422) {
+            return $response;
+        }
 
         $response = [
             'error' => false,
@@ -142,11 +144,12 @@ class BillingController extends Controller
 
         $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-        if ($statusCode == 422) {
+        if ($statusCode < 200 || $statusCode >= 300) {
             return response()->json([
                 'error' => true,
                 'table' => 'Payment Header',
-                'message' => 'Error Inserting Data.'
+                'message' => 'Error Inserting Data.',
+                'result' => $result
             ], 422);
         }
 
@@ -250,9 +253,12 @@ class BillingController extends Controller
     
         $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-        if ($statusCode === 422) {
+        if ($statusCode < 200 || $statusCode >= 300) {
             return response()->json([
                 'error' => true,
+                'table' => 'Payment Details',
+                'message' => 'Error Inserting Data.',
+                'result' => $result
             ], 422);
         }
 
@@ -356,9 +362,12 @@ class BillingController extends Controller
     
         $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-        if ($statusCode === 422) {
+        if ($statusCode < 200 || $statusCode >= 300) {
             return response()->json([
                 'error' => true,
+                'table' => 'Reading Header Others',
+                'message' => 'Error Inserting Data.',
+                'result' => $result
             ], 422);
         }
 
@@ -462,9 +471,12 @@ class BillingController extends Controller
     
         $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-        if ($statusCode === 422) {
+        if ($statusCode < 200 || $statusCode >= 300) {
             return response()->json([
                 'error' => true,
+                'table' => 'Payment Details Others',
+                'message' => 'Error Inserting Data.',
+                'result' => $result
             ], 422);
         }
 
@@ -572,6 +584,15 @@ class BillingController extends Controller
             return response()->json($response, 422);
         }
 
+        if ($statusCode < 200 || $statusCode >= 300) {
+            return response()->json([
+                'error' => true,
+                'table' => 'Payment Header Validation',
+                'message' => 'Error Reconstructing Data.',
+                'result' => $result
+            ], 422);
+        }
+
         if(curl_errno($ch)) {
             $response = [
                 'error' => true,
@@ -643,6 +664,15 @@ class BillingController extends Controller
                 'message' => 'Records will be reconstructed on the next sync.'
             ];
             return response()->json($response, 422);
+        }
+
+        if ($statusCode < 200 || $statusCode >= 300) {
+            return response()->json([
+                'error' => true,
+                'table' => 'Payment Details Validation',
+                'message' => 'Error Reconstructing Data.',
+                'result' => $result
+            ], 422);
         }
 
         if(curl_errno($ch)) {
@@ -717,6 +747,15 @@ class BillingController extends Controller
             return response()->json($response, 422);
         }
 
+        if ($statusCode < 200 || $statusCode >= 300) {
+            return response()->json([
+                'error' => true,
+                'table' => 'Payment Header Others Validation',
+                'message' => 'Error Reconstructing Data.',
+                'result' => $result
+            ], 422);
+        }
+
         if(curl_errno($ch)) {
             $response = [
                 'error' => true,
@@ -785,6 +824,15 @@ class BillingController extends Controller
                 'message' => 'Records will be reconstructed on the next sync.'
             ];
             return response()->json($response, 422);
+        }
+
+        if ($statusCode < 200 || $statusCode >= 300) {
+            return response()->json([
+                'error' => true,
+                'table' => 'Payment Details Others Validation',
+                'message' => 'Error Reconstructing Data.',
+                'result' => $result
+            ], 422);
         }
 
         if(curl_errno($ch)) {
