@@ -8,7 +8,7 @@
             current.setDate(current.getDate() - 1);
             current = current.toISOString().substring(0, 10);
             let status = ref('System is ready to sync to PAMANA Server'), 
-                resData = ref([]),
+                resData = ref([]), isSyncing = ref(true),
                 isOnline = ref(false),
                 timeoutId = null;
             let xType = ref(''), xText = ref(''), errors = ref(false)
@@ -21,26 +21,29 @@
                     dateTo: current
                 })
 
-            onMounted(() => {
-                uploadPaymentToHO();
-                isOnline.value = navigator.onLine
-            })
+            // onMounted(() => {
+            //     uploadPaymentToHO();
+            //     isOnline.value = navigator.onLine
+            // })
 
             const uploadPaymentToHO = async () => {
                 isOnline.value = navigator.onLine
                 clearTimeout(timeoutId);
                 resData.value = '';
+                isSyncing.value = true
                 status.value = 'Syncing data ... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
                 await axios.get('/api/SyncPaymentToHO')
                 .then((response) => {
                     status.value = 'Done Syncing... Cycle will repeat after 1 minute.';
                     resData.value = response.data;
                     timeoutId = setTimeout(uploadPaymentToHO, 60000);
+                    isSyncing.value = false
                 })
                 .catch((error) => {
                     status.value = 'Error Inserting Data.';
                     resData.value = error.response.data;
                     timeoutId = setTimeout(uploadPaymentToHO, 60000);
+                    isSyncing.value = false
                 });
             }
                 
@@ -63,9 +66,10 @@
                     url = '/api/rebuildPaymentsWater'
                 }else if(xType.value == 'PAYMENTSOTHERS') {
                     url = '/api/rebuildPaymentsOthers'
-                }else if(xType.value == 'BILLS') {
+                }else if(xType.value == 'READINGBILLS') {
+                    url = '/api/rebuildReading'
+                }else{
                     return;
-                    url = '/api/rebuilBills'
                 }
 
                 const formData = new FormData();
@@ -96,7 +100,7 @@
             return {
                 status, resData, isOnline, rebuildConfiramtion,
                 xType, errors, saveButtonText, rebuild,
-                isRebuilding, rebuildStatus, form, xText
+                isRebuilding, rebuildStatus, form, xText, isSyncing
             }
         }
     }
@@ -144,7 +148,7 @@
                                 <ul class="dropdown-menu">
                                     <li><a class="dropdown-item" href="#" @click.prevent="rebuildConfiramtion('PAYMENTSWATER', 'WATER BILL PAYMENTS')">PAYMENTS WATER BILL</a></li>
                                     <li><a class="dropdown-item" href="#" @click.prevent="rebuildConfiramtion('PAYMENTSOTHERS', 'OTHER PAYMENTS')">PAYMENTS OTHERS</a></li>
-                                    <li><a class="dropdown-item" href="#" @click.prevent="rebuildConfiramtion('BILLS', 'BILLS')">BILLS</a></li>
+                                    <li><a class="dropdown-item" href="#" @click.prevent="rebuildConfiramtion('READINGBILLS', 'READING BILLS')">READING BILLS</a></li>
                                     <li><a class="dropdown-item" href="#" @click.prevent="rebuildConfiramtion('RESERVED', 'RESERVED')">RESERVED</a></li>
                                 </ul>
                             </div>
@@ -184,7 +188,9 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-body">
-
+                    <div class="alert alert-info alert-dismissible fade show text-center" role="alert" v-if="isSyncing"> 
+                        Rebuild is unavalable during the syncing process. Please wait for the sync to finish in a few moments.
+                    </div>
                     <div class="col-12 mb-3">
                         <p class="text-center"> Please type the MASTERKEY to rebuild </p>
                         <h3 class="text-center"><strong class="text-danger"><em>{{ xText }}</em></strong></h3>
@@ -193,8 +199,7 @@
                         <small class="text-danger text-start">{{ rebuildStatus }}</small>
                         <small class="text-danger text-start" v-if="errors.date">{{ errors.date[0] }}</small>
                     </div>
-
-                    <button type="button" class="btn btn-success float-end ml-2 w-90px" @click="rebuild()" :disabled="isRebuilding"><span v-html="saveButtonText"></span></button>
+                    <button type="button" class="btn btn-success float-end ml-2 w-90px" @click="rebuild()" :disabled="isRebuilding || isSyncing"><span v-html="saveButtonText"></span></button>
                     <button type="button" class="btn btn-white float-end " data-bs-dismiss="modal" :disabled="isRebuilding">Close</button>
 
                 </div>

@@ -157,7 +157,7 @@ class BillingController extends Controller
             $response = [
                 'error' => true,
                 'table' => 'Payment header',
-                'message' => 'Error Inserting Data - Please check the back-end code.'
+                'message' => 'Error Inserting Data'
             ];
             return response()->json($response, 422);
         }
@@ -266,7 +266,7 @@ class BillingController extends Controller
             $response = [
                 'error' => true,
                 'table' => 'Payment Details',
-                'message' => 'Error Inserting Data - Please check the back-end code.'
+                'message' => 'Error Inserting Data'
             ];
             return response()->json($response, 422);
         }
@@ -375,7 +375,7 @@ class BillingController extends Controller
             $response = [
                 'error' => true,
                 'table' => 'Payment Header Others',
-                'message' => 'Error Inserting Data - Please check the back-end code.'
+                'message' => 'Error Inserting Data.'
             ];
             return response()->json($response, 422);
         }
@@ -484,7 +484,7 @@ class BillingController extends Controller
             $response = [
                 'error' => true,
                 'table' => 'Payment Details Others',
-                'message' => 'Error Inserting Data - Please check the back-end code.'
+                'message' => 'Error Inserting Data'
             ];
             return response()->json($response, 422);
         }
@@ -597,7 +597,7 @@ class BillingController extends Controller
             $response = [
                 'error' => true,
                 'table' => 'Payment Header',
-                'message' => 'Error Inserting Data - Please check the back-end code.'
+                'message' => 'Error Inserting Data.'
             ];
             return response()->json($response, 422);
         }
@@ -679,7 +679,7 @@ class BillingController extends Controller
             $response = [
                 'error' => true,
                 'table' => 'Payment Details',
-                'message' => 'Error Inserting Data - Please check the back-end code.'
+                'message' => 'Error Inserting Data.'
             ];
             return response()->json($response, 422);
         }
@@ -760,7 +760,7 @@ class BillingController extends Controller
             $response = [
                 'error' => true,
                 'table' => 'Payment Header Others',
-                'message' => 'Error Inserting Data - Please check the back-end code.'
+                'message' => 'Error Inserting Data.'
             ];
             return response()->json($response, 422);
         }
@@ -839,7 +839,7 @@ class BillingController extends Controller
             $response = [
                 'error' => true,
                 'table' => 'Payment Details Others',
-                'message' => 'Error Inserting Data - Please check the back-end code.'
+                'message' => 'Error Inserting Data.'
             ];
             return response()->json($response, 422);
         }
@@ -910,9 +910,18 @@ class BillingController extends Controller
             $response = [
                 'error' => true,
                 'table' => 'Rebuild Water Payments',
-                'message' => 'Error Rebuilding Data - Please check the back-end code.'
+                'message' => 'Error Rebuilding Data'
             ];
             return response()->json($response, 422);
+        }
+
+        if ($statusCode < 200 || $statusCode >= 300) {
+            return response()->json([
+                'error' => true,
+                'table' => 'Rebuild Water Payments',
+                'message' => 'Error Rebuilding Data',
+                'result' => $result
+            ], 422);
         }
     
         curl_close($ch);
@@ -991,9 +1000,18 @@ class BillingController extends Controller
             $response = [
                 'error' => true,
                 'table' => 'Rebuild Payment Others',
-                'message' => 'Error Rebuilding Data - Please check the back-end code.'
+                'message' => 'Error Rebuilding Data'
             ];
             return response()->json($response, 422);
+        }
+
+        if ($statusCode < 200 || $statusCode >= 300) {
+            return response()->json([
+                'error' => true,
+                'table' => 'Rebuild Payment Others',
+                'message' => 'Error Rebuilding Data',
+                'result' => $result
+            ], 422);
         }
     
         curl_close($ch);

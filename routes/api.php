@@ -22,6 +22,7 @@ Route::group([
     Route::get('/SyncPaymentToHO', 'BillingController@SyncPayment');
     Route::post('/rebuildPaymentsWater', 'BillingController@rebuildPaymentsWater');
     Route::post('/rebuildPaymentsOthers', 'BillingController@rebuildPaymentsOthers');
+    Route::post('/rebuildReading', 'ReadingController@rebuildReading');
     Route::post('/validate', 'BillingController@validatePaymentHeader');
     Route::get('/sync', 'BillingController@bulkUploadPaymentDetailsOthers');
 });
