@@ -21,10 +21,10 @@
                     dateTo: current
                 })
 
-            // onMounted(() => {
-            //     uploadPaymentToHO();
-            //     isOnline.value = navigator.onLine
-            // })
+            onMounted(() => {
+                uploadPaymentToHO();
+                isOnline.value = navigator.onLine
+            })
 
             const uploadPaymentToHO = async () => {
                 isOnline.value = navigator.onLine
