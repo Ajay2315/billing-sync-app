@@ -9,13 +9,14 @@ use Illuminate\Support\Facades\Validator;
 
 class ReadingController extends Controller
 {
-    protected $_key, $branchID, $branch, $dateTime, $today;
+    protected $_key, $branchID, $branch, $dateTime, $today, $server;
 
     public function __construct()
     {
         $this->_key = env('VITE_API_KEY');
         $this->branchID = env('VITE_APP_BrachID');
         $this->branch = env('VITE_APP_Branch');
+        $this->server = env('VITE_SERVER_IP');
         $this->dateTime = now();
         $this->today = now()->format('Y-m-d');
     }
@@ -59,7 +60,7 @@ class ReadingController extends Controller
         $ch = curl_init();
     
         $options = array(
-            CURLOPT_URL => 'http://190.92.244.187/api/ReadingApi/BulkInsertReadingHeader',
+            CURLOPT_URL => $this->server . '/api/ReadingApi/BulkInsertReadingHeader',
             CURLOPT_POST => 1,
             CURLOPT_POSTFIELDS => $data,
             CURLOPT_RETURNTRANSFER => 1
@@ -169,7 +170,7 @@ class ReadingController extends Controller
         $ch = curl_init();
     
         $options = array(
-            CURLOPT_URL => 'http://190.92.244.187/api/ReadingApi/BulkInsertReadingDetails',
+            CURLOPT_URL => $this->server . '/api/ReadingApi/BulkInsertReadingDetails',
             CURLOPT_POST => 1,
             CURLOPT_POSTFIELDS => $data,
             CURLOPT_RETURNTRANSFER => 1
@@ -266,7 +267,7 @@ class ReadingController extends Controller
         $ch = curl_init();
     
         $options = array(
-            CURLOPT_URL => 'http://190.92.244.187/api/ReadingApi/rebuildReading',
+            CURLOPT_URL => $this->server . '/api/ReadingApi/rebuildReading',
             CURLOPT_POST => 1,
             CURLOPT_POSTFIELDS => $data,
             CURLOPT_RETURNTRANSFER => 1
@@ -326,6 +327,180 @@ class ReadingController extends Controller
         $response = [
             'error' => false,
             'message' => 'Record successfully rebuild.'
+        ];
+        return response()->json($response, 200);
+    }
+
+    public function uploadEfficiencyBillDisplay() {
+        $header = DB::table('vue_EfficiencyBillDisplay')
+                    ->limit(24)
+                    ->orderBy('Year', 'Desc')
+                    ->orderBy('Month', 'Desc')
+                    ->get();
+
+        if ($header === false) {
+            $response = [
+                'error' => true,
+                'table' => 'Efficiency Bill Display',
+                'message' => 'Error inserting data.'
+            ];
+            return response()->json($response, 422);
+        }
+
+        $data = [
+            'data' => json_encode($header),
+            'TotalCount' => $header->count(),
+            'BranchID' => $this->branchID,
+            'Branch' => $this->branch,
+            'dataTime' => $this->dateTime
+        ];
+
+        $ch = curl_init();
+    
+        $options = array(
+            CURLOPT_URL => $this->server . '/api/ReadingApi/InsertEfficiencyBillDisplay',
+            CURLOPT_POST => 1,
+            CURLOPT_POSTFIELDS => $data,
+            CURLOPT_RETURNTRANSFER => 1
+        );
+    
+        curl_setopt_array($ch, $options);
+    
+        $result = curl_exec($ch);
+
+        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        if ($statusCode < 200 || $statusCode >= 300) {
+            return response()->json([
+                'error' => true,
+                'table' => 'Efficiency Bill Display',
+                'message' => 'Error Inserting Data.',
+                'result' => $result
+            ], 422);
+        }
+
+        if(curl_errno($ch)) {
+            $response = [
+                'error' => true,
+                'table' => 'Efficiency Bill Display',
+                'message' => 'Error Inserting Data.'
+            ];
+            return response()->json($response, 422);
+        }
+    
+        curl_close($ch);
+
+        if(!is_int($result) && is_array($result)) {
+            $response = [
+                'result' => $result,
+                'error' => true,
+                'table' => 'Efficiency Bill Display',
+                'message' => 'Error Inserting Data.'
+            ];
+            return response()->json($response, 422);
+        }
+        
+        if($header->count() > $result) {
+            $response = [
+                'result' => $result,
+                'error' => true,
+                'table' => 'Efficiency Bill Display',
+                'message' => 'Error Inserting Data.'
+            ];
+            return response()->json($response, 422);
+        }
+
+        $response = [
+            'error' => false,
+            'table' => 'Efficiency Bill Display',
+            'message' => 'Efficiency Bill Display Inserted Successfully.'
+        ];
+        return response()->json($response, 200);
+    }
+
+    public function uploadEfficiencyPaymentDisplay() {
+        $header = DB::table('vue_EfficiencyPaymentDisplay')
+                    ->limit(500)
+                    ->orderBy('YearPaid', 'Desc')
+                    ->orderBy('MonthPaid', 'Desc')
+                    ->get();
+
+        if ($header === false) {
+            $response = [
+                'error' => true,
+                'table' => 'Efficiency Payment Display',
+                'message' => 'Error inserting data.'
+            ];
+            return response()->json($response, 422);
+        }
+
+        $data = [
+            'data' => json_encode($header),
+            'TotalCount' => $header->count(),
+            'BranchID' => $this->branchID,
+            'Branch' => $this->branch,
+            'dataTime' => $this->dateTime
+        ];
+
+        $ch = curl_init();
+    
+        $options = array(
+            CURLOPT_URL => $this->server . '/api/ReadingApi/InsertEfficiencyPaymentDisplay',
+            CURLOPT_POST => 1,
+            CURLOPT_POSTFIELDS => $data,
+            CURLOPT_RETURNTRANSFER => 1
+        );
+    
+        curl_setopt_array($ch, $options);
+    
+        $result = curl_exec($ch);
+
+        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        if ($statusCode < 200 || $statusCode >= 300) {
+            return response()->json([
+                'error' => true,
+                'table' => 'Efficiency Bill Display',
+                'message' => 'Error Inserting Data.',
+                'result' => $result
+            ], 422);
+        }
+
+        if(curl_errno($ch)) {
+            $response = [
+                'error' => true,
+                'table' => 'Efficiency Bill Display',
+                'message' => 'Error Inserting Data.'
+            ];
+            return response()->json($response, 422);
+        }
+    
+        curl_close($ch);
+
+        if(!is_int($result) && is_array($result)) {
+            $response = [
+                'result' => $result,
+                'error' => true,
+                'table' => 'Efficiency Bill Display',
+                'message' => 'Error Inserting Data.'
+            ];
+            return response()->json($response, 422);
+        }
+        
+        if($header->count() > $result) {
+            $response = [
+                'result' => $result,
+                'error' => true,
+                'table' => 'Efficiency Bill Display',
+                'message' => 'Error Inserting Data.'
+            ];
+            return response()->json($response, 422);
+        }
+
+        $response = [
+            'error' => false,
+            'table' => 'Efficiency Bill Display',
+            'message' => 'Efficiency Bill Display Inserted Successfully.'
         ];
         return response()->json($response, 200);
     }

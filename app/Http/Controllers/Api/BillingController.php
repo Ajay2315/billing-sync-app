@@ -9,13 +9,14 @@ use Illuminate\Support\Facades\Validator;
 
 class BillingController extends Controller
 {
-    protected $_key, $branchID, $branch, $dateTime, $today;
+    protected $_key, $branchID, $branch, $dateTime, $today, $server;
 
     public function __construct()
     {
         $this->_key = env('VITE_API_KEY');
         $this->branchID = env('VITE_APP_BrachID');
         $this->branch = env('VITE_APP_Branch');
+        $this->server = env('VITE_SERVER_IP');
         $this->dateTime = now();
         $this->today = now()->format('Y-m-d');
     }
@@ -68,10 +69,16 @@ class BillingController extends Controller
             return $response;
         }
 
+        //EffiencyBillDisplay
+        $response = $this->tryCatch('Efficiency Bill Display', [$readingController, 'uploadEfficiencyBillDisplay']);
+        if ($response->getStatusCode() === 422) {
+            return $response;
+        }
+
         $response = [
             'error' => false,
-            'table' => 'Payment Header, Payment Detail, Payment Header Others, Payment Detail Others, Reading Header, Reading Details',
-            'message' => 'Payment Data Inserted Successfully.'
+            'table' => 'Payment Header, Payment Detail, Payment Header Others, Payment Detail Others, Reading Header, Reading Details, Efficiency Bill Display',
+            'message' => 'Data Inserted Successfully.'
         ];
         return response()->json($response, 200);
     }
@@ -132,7 +139,7 @@ class BillingController extends Controller
         $ch = curl_init();
     
         $options = array(
-            CURLOPT_URL => 'http://190.92.244.187/api/BillingApi/BulkInsertPaymentHeader',
+            CURLOPT_URL => $this->server . '/api/BillingApi/BulkInsertPaymentHeader',
             CURLOPT_POST => 1,
             CURLOPT_POSTFIELDS => $data,
             CURLOPT_RETURNTRANSFER => 1
@@ -241,7 +248,7 @@ class BillingController extends Controller
         $ch = curl_init();
     
         $options = array(
-            CURLOPT_URL => 'http://190.92.244.187/api/BillingApi/BulkInsertPaymentDetails',
+            CURLOPT_URL => $this->server . '/api/BillingApi/BulkInsertPaymentDetails',
             CURLOPT_POST => 1,
             CURLOPT_POSTFIELDS => $data,
             CURLOPT_RETURNTRANSFER => 1
@@ -350,7 +357,7 @@ class BillingController extends Controller
         $ch = curl_init();
     
         $options = array(
-            CURLOPT_URL => 'http://190.92.244.187/api/BillingApi/BulkInsertPaymentHeaderOthers',
+            CURLOPT_URL => $this->server . '/api/BillingApi/BulkInsertPaymentHeaderOthers',
             CURLOPT_POST => 1,
             CURLOPT_POSTFIELDS => $data,
             CURLOPT_RETURNTRANSFER => 1
@@ -459,7 +466,7 @@ class BillingController extends Controller
         $ch = curl_init();
     
         $options = array(
-            CURLOPT_URL => 'http://190.92.244.187/api/BillingApi/BulkInsertPaymentDetailsOthers',
+            CURLOPT_URL => $this->server . '/api/BillingApi/BulkInsertPaymentDetailsOthers',
             CURLOPT_POST => 1,
             CURLOPT_POSTFIELDS => $data,
             CURLOPT_RETURNTRANSFER => 1
@@ -557,7 +564,7 @@ class BillingController extends Controller
         $ch = curl_init();
     
         $options = array(
-            CURLOPT_URL => 'http://190.92.244.187/api/BillingApi/validatePaymentHeader',
+            CURLOPT_URL => $this->server . '/api/BillingApi/validatePaymentHeader',
             CURLOPT_POST => 1,
             CURLOPT_POSTFIELDS => $data,
             CURLOPT_RETURNTRANSFER => 1
@@ -639,7 +646,7 @@ class BillingController extends Controller
         $ch = curl_init();
     
         $options = array(
-            CURLOPT_URL => 'http://190.92.244.187/api/BillingApi/validatePaymentDetails',
+            CURLOPT_URL => $this->server . '/api/BillingApi/validatePaymentDetails',
             CURLOPT_POST => 1,
             CURLOPT_POSTFIELDS => $data,
             CURLOPT_RETURNTRANSFER => 1
@@ -720,7 +727,7 @@ class BillingController extends Controller
         $ch = curl_init();
     
         $options = array(
-            CURLOPT_URL => 'http://190.92.244.187/api/BillingApi/validatePaymentHeaderOthers',
+            CURLOPT_URL => $this->server . '/api/BillingApi/validatePaymentHeaderOthers',
             CURLOPT_POST => 1,
             CURLOPT_POSTFIELDS => $data,
             CURLOPT_RETURNTRANSFER => 1
@@ -800,7 +807,7 @@ class BillingController extends Controller
         $ch = curl_init();
     
         $options = array(
-            CURLOPT_URL => 'http://190.92.244.187/api/BillingApi/validatePaymentDetailsOthers',
+            CURLOPT_URL => $this->server . '/api/BillingApi/validatePaymentDetailsOthers',
             CURLOPT_POST => 1,
             CURLOPT_POSTFIELDS => $data,
             CURLOPT_RETURNTRANSFER => 1
@@ -880,7 +887,7 @@ class BillingController extends Controller
         $ch = curl_init();
     
         $options = array(
-            CURLOPT_URL => 'http://190.92.244.187/api/BillingApi/rebuildWaterPayments',
+            CURLOPT_URL => $this->server . '/api/BillingApi/rebuildWaterPayments',
             CURLOPT_POST => 1,
             CURLOPT_POSTFIELDS => $data,
             CURLOPT_RETURNTRANSFER => 1
@@ -970,7 +977,7 @@ class BillingController extends Controller
         $ch = curl_init();
     
         $options = array(
-            CURLOPT_URL => 'http://190.92.244.187/api/BillingApi/rebuildOthersPayments',
+            CURLOPT_URL => $this->server . '/api/BillingApi/rebuildOthersPayments',
             CURLOPT_POST => 1,
             CURLOPT_POSTFIELDS => $data,
             CURLOPT_RETURNTRANSFER => 1
