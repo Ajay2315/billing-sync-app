@@ -24,5 +24,5 @@ Route::group([
     Route::post('/rebuildPaymentsOthers', 'BillingController@rebuildPaymentsOthers');
     Route::post('/rebuildReading', 'ReadingController@rebuildReading');
     Route::post('/validate', 'BillingController@validatePaymentHeader');
-    Route::get('/sync', 'BillingController@bulkUploadPaymentDetailsOthers');
+    Route::get('/sync', 'ReadingController@uploadEfficiencyPaymentDisplay');
 });
