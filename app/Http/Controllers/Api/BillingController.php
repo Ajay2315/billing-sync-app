@@ -69,7 +69,7 @@ class BillingController extends Controller
             return $response;
         }
 
-        //EffiencyBillDisplay
+        //EffiencyDisplay
         $response = $this->tryCatch('Efficiency Bill Display', [$readingController, 'uploadEfficiencyBillDisplay']);
         if ($response->getStatusCode() === 422) {
             return $response;
@@ -80,9 +80,14 @@ class BillingController extends Controller
             return $response;
         }
 
+        $response = $this->tryCatch('Efficiency Current Display', [$readingController, 'uploadEfficiencyCurrentDisplay']);
+        if ($response->getStatusCode() === 422) {
+            return $response;
+        }
+
         $response = [
             'error' => false,
-            'table' => 'Payment Header, Payment Detail, Payment Header Others, Payment Detail Others, Reading Header, Reading Details, Efficiency Bill Display, Efficiency Payment Display',
+            'table' => 'Payment Header, Payment Detail, Payment Header Others, Payment Detail Others, Reading Header, Reading Details, Efficiency Bill Display, Efficiency Payment Display, Efficiency Current Display',
             'message' => 'Data Inserted Successfully.'
         ];
         return response()->json($response, 200);
