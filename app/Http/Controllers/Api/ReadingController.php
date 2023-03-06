@@ -420,7 +420,7 @@ class ReadingController extends Controller
 
     public function uploadEfficiencyPaymentDisplay() {
         $header = DB::table('vue_EfficiencyPaymentDisplay')
-                    ->limit(500)
+                    ->limit(200)
                     ->orderBy('YearPaid', 'Desc')
                     ->orderBy('MonthPaid', 'Desc')
                     ->get();
@@ -460,7 +460,7 @@ class ReadingController extends Controller
         if ($statusCode < 200 || $statusCode >= 300) {
             return response()->json([
                 'error' => true,
-                'table' => 'Efficiency Bill Display',
+                'table' => 'Efficiency Payment Display',
                 'message' => 'Error Inserting Data.',
                 'result' => $result
             ], 422);
@@ -469,7 +469,7 @@ class ReadingController extends Controller
         if(curl_errno($ch)) {
             $response = [
                 'error' => true,
-                'table' => 'Efficiency Bill Display',
+                'table' => 'Efficiency Payment Display',
                 'message' => 'Error Inserting Data.'
             ];
             return response()->json($response, 422);
@@ -481,7 +481,7 @@ class ReadingController extends Controller
             $response = [
                 'result' => $result,
                 'error' => true,
-                'table' => 'Efficiency Bill Display',
+                'table' => 'Efficiency Payment Display',
                 'message' => 'Error Inserting Data.'
             ];
             return response()->json($response, 422);
@@ -491,7 +491,7 @@ class ReadingController extends Controller
             $response = [
                 'result' => $result,
                 'error' => true,
-                'table' => 'Efficiency Bill Display',
+                'table' => 'Efficiency Payment Display',
                 'message' => 'Error Inserting Data.'
             ];
             return response()->json($response, 422);
@@ -499,8 +499,95 @@ class ReadingController extends Controller
 
         $response = [
             'error' => false,
-            'table' => 'Efficiency Bill Display',
-            'message' => 'Efficiency Bill Display Inserted Successfully.'
+            'table' => 'Efficiency Payment Display',
+            'message' => 'Efficiency Payment Display Inserted Successfully.'
+        ];
+        return response()->json($response, 200);
+    }
+
+    public function uploadEfficiencyCurrentDisplay() {
+        $header = DB::table('vue_EfficiencyCurrentDisplay')
+                    ->limit(24)
+                    ->orderBy('YearPaid', 'Desc')
+                    ->orderBy('MonthPaid', 'Desc')
+                    ->get();
+
+        if ($header === false) {
+            $response = [
+                'error' => true,
+                'table' => 'Efficiency Current Display',
+                'message' => 'Error inserting data.'
+            ];
+            return response()->json($response, 422);
+        }
+
+        $data = [
+            'data' => json_encode($header),
+            'TotalCount' => $header->count(),
+            'BranchID' => $this->branchID,
+            'Branch' => $this->branch,
+            'dataTime' => $this->dateTime
+        ];
+
+        $ch = curl_init();
+    
+        $options = array(
+            CURLOPT_URL => $this->server . '/api/ReadingApi/InsertEfficiencyCurrentDisplay',
+            CURLOPT_POST => 1,
+            CURLOPT_POSTFIELDS => $data,
+            CURLOPT_RETURNTRANSFER => 1
+        );
+    
+        curl_setopt_array($ch, $options);
+    
+        $result = curl_exec($ch);
+
+        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        if ($statusCode < 200 || $statusCode >= 300) {
+            return response()->json([
+                'error' => true,
+                'table' => 'Efficiency Current Display',
+                'message' => 'Error Inserting Data.',
+                'result' => $result
+            ], 422);
+        }
+
+        if(curl_errno($ch)) {
+            $response = [
+                'error' => true,
+                'table' => 'Efficiency Current Display',
+                'message' => 'Error Inserting Data.'
+            ];
+            return response()->json($response, 422);
+        }
+    
+        curl_close($ch);
+
+        if(!is_int($result) && is_array($result)) {
+            $response = [
+                'result' => $result,
+                'error' => true,
+                'table' => 'Efficiency Current Display',
+                'message' => 'Error Inserting Data.'
+            ];
+            return response()->json($response, 422);
+        }
+        
+        if($header->count() > $result) {
+            $response = [
+                'result' => $result,
+                'error' => true,
+                'table' => 'Efficiency Current Display',
+                'message' => 'Error Inserting Data.'
+            ];
+            return response()->json($response, 422);
+        }
+
+        $response = [
+            'error' => false,
+            'table' => 'Efficiency Current Display',
+            'message' => 'Efficiency Current Display Inserted Successfully.'
         ];
         return response()->json($response, 200);
     }
