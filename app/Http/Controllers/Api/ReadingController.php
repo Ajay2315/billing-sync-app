@@ -333,7 +333,7 @@ class ReadingController extends Controller
 
     public function uploadEfficiencyBillDisplay() {
         $header = DB::table('vue_EfficiencyBillDisplay')
-                    ->limit(24)
+                    ->limit(48)
                     ->orderBy('Year', 'Desc')
                     ->orderBy('Month', 'Desc')
                     ->get();
@@ -420,7 +420,7 @@ class ReadingController extends Controller
 
     public function uploadEfficiencyPaymentDisplay() {
         $header = DB::table('vue_EfficiencyPaymentDisplay')
-                    ->limit(200)
+                    ->limit(500)
                     ->orderBy('YearPaid', 'Desc')
                     ->orderBy('MonthPaid', 'Desc')
                     ->get();
@@ -507,9 +507,9 @@ class ReadingController extends Controller
 
     public function uploadEfficiencyCurrentDisplay() {
         $header = DB::table('vue_EfficiencyCurrentDisplay')
-                    ->limit(24)
-                    ->orderBy('YearPaid', 'Desc')
-                    ->orderBy('MonthPaid', 'Desc')
+                    ->limit(48)
+                    ->orderBy('Year', 'Desc')
+                    ->orderBy('Month', 'Desc')
                     ->get();
 
         if ($header === false) {
