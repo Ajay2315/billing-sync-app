@@ -508,8 +508,8 @@ class ReadingController extends Controller
     public function uploadEfficiencyCurrentDisplay() {
         $header = DB::table('vue_EfficiencyCurrentDisplay')
                     ->limit(48)
-                    ->orderBy('Year', 'Desc')
-                    ->orderBy('Month', 'Desc')
+                    ->orderBy('YearPaid', 'Desc')
+                    ->orderBy('MonthPaid', 'Desc')
                     ->get();
 
         if ($header === false) {
